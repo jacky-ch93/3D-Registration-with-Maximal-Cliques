@@ -6,7 +6,7 @@ import os
 import open3d as o3d
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-cuda = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 
 def integrate_trans(R, t):
@@ -167,9 +167,9 @@ def test(folder):
 
     src_pts = np.array(src_kpts.points, dtype=np.float32)[corr[:,0]]
     tgt_pts = np.array(tgt_kpts.points, dtype=np.float32)[corr[:,1]]
-    src_pts = torch.from_numpy(src_pts).cuda()
-    tgt_pts = torch.from_numpy(tgt_pts).cuda()
-    GTmat = torch.from_numpy(GTmat).cuda()
+    src_pts = torch.from_numpy(src_pts).to(device)
+    tgt_pts = torch.from_numpy(tgt_pts).to(device)
+    GTmat = torch.from_numpy(GTmat).to(device)
     t1 = time.perf_counter()
     # graph construction
     src_dist = ((src_pts[:, None, :] - src_pts[None, :, :]) ** 2).sum(-1) ** 0.5
@@ -214,7 +214,10 @@ def test(folder):
                     max_size = len(mac) > max_size and len(mac) or max_size
 
     filtered_clique_ind = list(set(clique_ind_of_node))
-    filtered_clique_ind.remove(-1)
+    try:
+        filtered_clique_ind.remove(-1)
+    except Exception as e:
+        print("a")
     print(f'After filtered: %d' % len(filtered_clique_ind))
     group = []
     for s in range(3, max_size + 1):
@@ -226,6 +229,8 @@ def test(folder):
     tensor_list_A = []
     tensor_list_B = []
     for i in range(len(group)):
+        if group == []:
+            continue
         batch_A = src_pts[list(macs[group[i][0]])][None]
         batch_B = tgt_pts[list(macs[group[i][0]])][None]
         if len(group) == 1:

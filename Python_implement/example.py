@@ -6,7 +6,7 @@ import os
 import open3d as o3d
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-cuda = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def integrate_trans(R, t):
@@ -146,9 +146,9 @@ def test(folder):
     src_pcd = o3d.io.read_point_cloud(src_pcd_path)
     tgt_pcd = o3d.io.read_point_cloud(tgt_pcd_path)
     
-    src_pts = torch.from_numpy(corr_data[:, 0:3]).cuda()
-    tgt_pts = torch.from_numpy(corr_data[:, 3:6]).cuda()
-    GTmat = torch.from_numpy(GTmat).cuda()
+    src_pts = torch.from_numpy(corr_data[:, 0:3]).to(device)
+    tgt_pts = torch.from_numpy(corr_data[:, 3:6]).to(device)
+    GTmat = torch.from_numpy(GTmat).to(device)
     t1 = time.perf_counter()
     src_dist = ((src_pts[:, None, :] - src_pts[None, :, :]) ** 2).sum(-1) ** 0.5
     tgt_dist = ((tgt_pts[:, None, :] - tgt_pts[None, :, :]) ** 2).sum(-1) ** 0.5
